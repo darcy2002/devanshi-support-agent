@@ -1,0 +1,140 @@
+.app {
+  width: 100%;
+  max-width: 480px;
+}
+
+/* Hero card wrapper: centered on top of moving lines */
+.landing-card-wrap {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 480px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Hero / Landing section - interactive card */
+.hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 2rem 1.5rem;
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow);
+  position: relative;
+  z-index: 1;
+  transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+}
+
+.hero:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35), 0 0 60px rgba(99, 102, 241, 0.12);
+  border-color: rgba(99, 102, 241, 0.35);
+}
+
+.hero-visual {
+  margin-bottom: 1.5rem;
+  transition: transform 0.3s ease;
+}
+
+.hero:hover .hero-visual {
+  transform: scale(1.05);
+}
+
+.orb-placeholder {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--color-accent) 0%, #8b5cf6 100%);
+  opacity: 0.9;
+  box-shadow: 0 0 40px rgba(99, 102, 241, 0.4);
+  animation: orb-glow 2.5s ease-in-out infinite alternate;
+  transition: box-shadow 0.3s ease, transform 0.3s ease;
+}
+
+.hero:hover .orb-placeholder {
+  box-shadow: 0 0 55px rgba(99, 102, 241, 0.55), 0 0 80px rgba(139, 92, 246, 0.25);
+}
+
+@keyframes orb-glow {
+  from {
+    box-shadow: 0 0 30px rgba(99, 102, 241, 0.3);
+  }
+  to {
+    box-shadow: 0 0 50px rgba(99, 102, 241, 0.5);
+  }
+}
+
+.hero-title {
+  margin: 0 0 0.5rem;
+  font-size: 1.75rem;
+  font-weight: 600;
+  transition: color 0.2s ease;
+}
+
+.hero:hover .hero-title {
+  color: rgba(255, 255, 255, 0.98);
+}
+
+.hero-subtitle {
+  margin: 0 0 1.75rem;
+  font-size: 0.95rem;
+  color: var(--color-text-muted);
+  line-height: 1.5;
+  max-width: 320px;
+  transition: color 0.2s ease;
+}
+
+.hero:hover .hero-subtitle {
+  color: rgba(161, 161, 170, 0.95);
+}
+
+/* Primary CTA button - "Talk now with Devanshi" */
+.cta-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.875rem 1.75rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: white;
+  background: var(--color-accent);
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(99, 102, 241, 0.35);
+  transition: background 0.25s ease, transform 0.2s ease, box-shadow 0.25s ease;
+}
+
+.cta-button:hover {
+  background: var(--color-accent-hover);
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 8px 28px rgba(99, 102, 241, 0.45), 0 0 40px rgba(99, 102, 241, 0.2);
+}
+
+.cta-button:active {
+  transform: translateY(0) scale(1);
+  box-shadow: 0 2px 12px rgba(99, 102, 241, 0.4);
+}
+
+.cta-button:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 3px;
+}
+
+.cta-icon {
+  display: flex;
+  transition: transform 0.25s ease;
+}
+
+.cta-button:hover .cta-icon {
+  transform: scale(1.1);
+}
+
+.cta-button:active .cta-icon {
+  transform: scale(1);
+}
