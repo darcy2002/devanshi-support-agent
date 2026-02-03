@@ -1,0 +1,127 @@
+.session-detail-page {
+  min-height: 100vh;
+  padding-bottom: 2rem;
+}
+
+.session-detail-header {
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+
+.session-detail-header-inner {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.session-detail-back {
+  display: inline-block;
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+}
+
+.session-detail-back:hover {
+  color: var(--color-accent);
+}
+
+.session-detail-title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.session-detail-main {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 1.5rem;
+}
+
+.session-detail-error {
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid var(--color-error);
+  border-radius: var(--radius);
+  color: var(--color-error);
+}
+
+.session-detail-muted {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+}
+
+.session-detail-meta {
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+}
+
+.session-detail-meta p {
+  margin: 0 0 0.5rem;
+  font-size: 0.9rem;
+}
+
+.session-detail-meta p:last-child {
+  margin-bottom: 0;
+}
+
+.session-detail-section-title {
+  margin: 0 0 1rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.transcript-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.transcript-entry {
+  padding: 1rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--color-border);
+}
+
+.transcript-entry--user {
+  background: rgba(99, 102, 241, 0.12);
+  border-color: rgba(99, 102, 241, 0.3);
+}
+
+.transcript-entry--assistant {
+  background: var(--color-surface);
+}
+
+.transcript-entry-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.transcript-entry-role {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+.transcript-entry--user .transcript-entry-role {
+  color: var(--color-accent);
+}
+
+.transcript-entry-time {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+}
+
+.transcript-entry-message {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}

@@ -105,7 +105,44 @@ devanshi-support-agent/
 
 ---
 
+## Phase 2: Devanshi Dashboard (authenticated)
+
+A **backend** and **dashboard** for Devanshi (agent owner) only. Devanshi can log in and see call activity, who called, and call summaries.
+
+- **Backend** (`backend/`): Express API with JWT auth; proxies [ElevenLabs Get Agent Summaries](https://elevenlabs.io/docs/agents-platform/api-reference/agents/get-summaries) and [List Conversations](https://elevenlabs.io/docs/conversational-ai/api-reference/conversations/list).
+- **Dashboard** (`dashboard/`): React app (login + dashboard) that shows agent summary and call/conversation list.
+
+### Quick start (Phase 2)
+
+1. **Backend**
+   ```bash
+   cd backend
+   cp .env.example .env
+   # Edit .env: JWT_SECRET, DASHBOARD_USER, DASHBOARD_PASSWORD, ELEVENLABS_API_KEY, AGENT_ID
+   npm install
+   npm run dev
+   ```
+   API runs at `http://localhost:3001`.
+
+2. **Dashboard**
+   ```bash
+   cd dashboard
+   cp .env.example .env
+   # Optional: VITE_APP_URL=http://localhost:5173 for "Back to app" link
+   npm install
+   npm run dev
+   ```
+   Dashboard runs at `http://localhost:5174` (Vite proxies `/api` and `/auth` to the backend).
+
+3. Log in with the credentials from `backend/.env` (e.g. `DASHBOARD_USER` / `DASHBOARD_PASSWORD`). Use **Back to app** to return to the main support agent.
+
+See `backend/README.md` and `dashboard/README.md` for env and API details.
+
+---
+
 ## Reference
 
 - [ElevenLabs UI Blocks - Agents](https://ui.elevenlabs.io/blocks/agents)
 - [ElevenLabs React SDK docs](https://elevenlabs.io/docs/agents-platform/libraries/react)
+- [ElevenLabs Get Agent Summaries API](https://elevenlabs.io/docs/agents-platform/api-reference/agents/get-summaries)
+- [ElevenLabs List Conversations API](https://elevenlabs.io/docs/conversational-ai/api-reference/conversations/list)

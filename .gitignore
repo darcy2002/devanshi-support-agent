@@ -6,10 +6,12 @@ dist
 dist-ssr
 *.local
 
-# Environment (never commit your real agent ID)
+# Environment (never commit secrets, API keys, or agent IDs)
 .env
 .env.local
 .env.*.local
+backend/.env
+dashboard/.env
 
 # Editor
 .vscode/*
