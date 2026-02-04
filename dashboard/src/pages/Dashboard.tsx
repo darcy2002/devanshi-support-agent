@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth'
-import { getAuthHeaders } from '../auth'
+import { getAuthHeaders } from '../authUtils'
 import './Dashboard.css'
 
 type AgentSummary = {
@@ -87,6 +87,14 @@ export function Dashboard() {
     loadConversations()
   }, [loadConversations])
 
+  // Refresh call history only when support app reports activity (session start/end)
+  useEffect(() => {
+    const es = new EventSource('/api/events')
+    es.onmessage = () => loadConversations()
+    es.onerror = () => es.close()
+    return () => es.close()
+  }, [loadConversations])
+
   const formatDate = (unix: number) => new Date(unix * 1000).toLocaleString()
   const formatDuration = (secs: number) => {
     const m = Math.floor(secs / 60)
@@ -163,13 +171,25 @@ export function Dashboard() {
                     <tr
                       key={c.conversation_id}
                       className="calls-table-row-clickable"
-                      onClick={() => navigate(`/session/${encodeURIComponent(c.conversation_id)}`)}
+                      onClick={() =>
+                        navigate(`/session/${encodeURIComponent(c.conversation_id)}`, {
+                          state: {
+                            summary: c.transcript_summary || c.call_summary_title,
+                            summaryTitle: c.call_summary_title,
+                          },
+                        })
+                      }
                       role="button"
                       tabIndex={0}
                       onKeyDown={(e) => {
                         if (e.key === 'Enter' || e.key === ' ') {
                           e.preventDefault()
-                          navigate(`/session/${encodeURIComponent(c.conversation_id)}`)
+                          navigate(`/session/${encodeURIComponent(c.conversation_id)}`, {
+                            state: {
+                              summary: c.transcript_summary || c.call_summary_title,
+                              summaryTitle: c.call_summary_title,
+                            },
+                          })
                         }
                       }}
                     >

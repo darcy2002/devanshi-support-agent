@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
-import { Link, useParams, useNavigate } from 'react-router-dom'
+import { Link, useParams, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../auth'
-import { getAuthHeaders } from '../auth'
+import { getAuthHeaders } from '../authUtils'
 import './SessionDetail.css'
 
 type TranscriptEntry = {
@@ -22,10 +22,15 @@ type ConversationDetail = {
   }
 }
 
+type LocationState = { summary?: string; summaryTitle?: string } | null
+
 export function SessionDetail() {
   const { conversationId } = useParams<{ conversationId: string }>()
   const navigate = useNavigate()
+  const location = useLocation()
   const { logout } = useAuth()
+  const passedSummary = (location.state as LocationState)?.summary
+  const passedTitle = (location.state as LocationState)?.summaryTitle
   const [conversation, setConversation] = useState<ConversationDetail | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -95,6 +100,18 @@ export function SessionDetail() {
                 <p><strong>Agent:</strong> {conversation.agent_name}</p>
               )}
             </div>
+
+            {(passedSummary || passedTitle) && (
+              <section className="session-detail-summary">
+                <h2 className="session-detail-section-title">Summary</h2>
+                {passedTitle && passedTitle !== passedSummary && (
+                  <p className="session-detail-summary-title">{passedTitle}</p>
+                )}
+                {(passedSummary || passedTitle) && (
+                  <p className="session-detail-summary-text">{passedSummary ?? passedTitle}</p>
+                )}
+              </section>
+            )}
 
             <section className="session-detail-transcript">
               <h2 className="session-detail-section-title">Transcript</h2>

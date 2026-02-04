@@ -1,6 +1,5 @@
-import { createContext, useContext, useState, useCallback } from 'react'
-
-const TOKEN_KEY = 'devanshi_dashboard_token'
+import { createContext, useContext, useState, useCallback, useEffect } from 'react'
+import { TOKEN_KEY } from './authUtils'
 
 type AuthContextValue = {
   token: string | null
@@ -9,6 +8,10 @@ type AuthContextValue = {
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null)
+
+function clearTokenStorage() {
+  localStorage.removeItem(TOKEN_KEY)
+}
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [token, setToken] = useState<string | null>(() => localStorage.getItem(TOKEN_KEY))
@@ -23,6 +26,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     localStorage.removeItem(TOKEN_KEY)
   }, [])
 
+  useEffect(() => {
+    const handleLeave = () => {
+      clearTokenStorage()
+    }
+    window.addEventListener('beforeunload', handleLeave)
+    window.addEventListener('pagehide', handleLeave)
+    return () => {
+      window.removeEventListener('beforeunload', handleLeave)
+      window.removeEventListener('pagehide', handleLeave)
+    }
+  }, [])
+
   return (
     <AuthContext.Provider value={{ token, login, logout }}>
       {children}
@@ -34,9 +49,4 @@ export function useAuth() {
   const ctx = useContext(AuthContext)
   if (!ctx) throw new Error('useAuth must be used within AuthProvider')
   return ctx
-}
-
-export function getAuthHeaders(): HeadersInit {
-  const t = localStorage.getItem(TOKEN_KEY)
-  return t ? { Authorization: `Bearer ${t}` } : {}
 }

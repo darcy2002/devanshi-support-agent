@@ -23,6 +23,9 @@ const elevenLabs = axios.create({
   },
 });
 
+// SSE clients: dashboards subscribed to agent-activity events
+const sseClients = [];
+
 function authMiddleware(req, res, next) {
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -37,6 +40,33 @@ function authMiddleware(req, res, next) {
     return res.status(401).json({ error: 'Invalid or expired token' });
   }
 }
+
+// SSE: dashboard subscribes here and gets "refresh" when support app reports activity
+app.get('/api/events', (req, res) => {
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  res.setHeader('X-Accel-Buffering', 'no');
+  res.flushHeaders();
+  sseClients.push(res);
+  res.on('close', () => {
+    const i = sseClients.indexOf(res);
+    if (i !== -1) sseClients.splice(i, 1);
+  });
+});
+
+// Support app calls this when a user starts or ends a call; notifies dashboards to refresh
+app.post('/api/agent-activity', (req, res) => {
+  const payload = 'data: refresh\n\n';
+  sseClients.forEach((client) => {
+    try {
+      client.write(payload);
+    } catch (err) {
+      // ignore write errors (e.g. closed connection)
+    }
+  });
+  res.status(204).end();
+});
 
 app.post('/auth/login', (req, res) => {
   try {

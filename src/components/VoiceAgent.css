@@ -77,15 +77,34 @@
   min-width: 0;
 }
 
+/* Orb: reacts when agent is listening vs talking (ElevenLabs Orb-style) */
 .voice-agent__orb {
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--color-accent) 0%, #8b5cf6 100%);
-  box-shadow: 0 0 20px rgba(99, 102, 241, 0.4);
-  /* Volume-based scaling - subtle animation */
-  transform: scale(calc(1 + (var(--input-volume, 0) + var(--output-volume, 0)) * 0.15));
-  transition: transform 0.1s ease-out;
+  background: linear-gradient(145deg, #818cf8 0%, var(--color-accent) 40%, #5b21b6 100%);
+  box-shadow: 0 0 24px rgba(99, 102, 241, 0.35);
+  transform: scale(calc(1 + (var(--input-volume, 0) + var(--output-volume, 0)) * 0.12));
+  transition: transform 0.1s ease-out, box-shadow 0.3s ease, width 0.3s ease, height 0.3s ease;
+}
+
+.voice-agent__orb--listening {
+  box-shadow: 0 0 24px rgba(99, 102, 241, 0.4), 0 0 0 3px rgba(99, 102, 241, 0.25);
+}
+
+.voice-agent__orb--talking {
+  box-shadow: 0 0 36px rgba(129, 140, 248, 0.7), 0 0 0 4px rgba(99, 102, 241, 0.4);
+  animation: orb-talking-breathe 1.4s ease-in-out infinite;
+}
+
+@keyframes orb-talking-breathe {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.15); opacity: 0.95; }
+}
+
+@keyframes orb-talking-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.88; }
 }
 
 .voice-agent__name {
@@ -125,17 +144,20 @@
   }
 }
 
-/* Messages area */
+/* Transcript / messages area – auto-scrollable */
 .voice-agent__content {
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
+  overflow-x: hidden;
   padding: 1rem 1.25rem;
+  -webkit-overflow-scrolling: touch;
 }
 
 .voice-agent__messages {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 1.25rem;
 }
 
 .voice-agent__empty {
@@ -154,6 +176,16 @@
   background: linear-gradient(135deg, var(--color-accent) 30%, transparent 70%);
   margin-bottom: 1rem;
   opacity: 0.6;
+  transition: box-shadow 0.25s ease;
+}
+
+.voice-agent__empty-orb--listening {
+  box-shadow: 0 0 24px rgba(99, 102, 241, 0.35);
+}
+
+.voice-agent__empty-orb--talking {
+  box-shadow: 0 0 32px rgba(99, 102, 241, 0.5);
+  animation: orb-talking-pulse 1.2s ease-in-out infinite;
 }
 
 .voice-agent__empty-title {
@@ -168,28 +200,80 @@
   color: var(--color-text-muted);
 }
 
-.voice-agent__message {
-  max-width: 85%;
-  padding: 0.75rem 1rem;
-  border-radius: var(--radius);
-  font-size: 0.9rem;
-  line-height: 1.4;
+/* Message widget (ElevenLabs Message-style): avatar + content, user right / assistant left */
+.voice-agent__message-widget {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.6rem;
+  max-width: 95%;
 }
 
-.voice-agent__message--user {
+.voice-agent__message-widget--user {
   align-self: flex-end;
-  background: var(--color-accent);
-  color: white;
+  flex-direction: row-reverse;
 }
 
-.voice-agent__message--assistant {
+.voice-agent__message-widget--assistant {
   align-self: flex-start;
-  background: var(--color-border);
+  flex-direction: row;
+}
+
+.voice-agent__message-avatar {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(145deg, #818cf8 0%, var(--color-accent) 50%, #5b21b6 100%);
+  box-shadow: 0 0 12px rgba(99, 102, 241, 0.35);
+  border: 2px solid rgba(255, 255, 255, 0.15);
+}
+
+.voice-agent__message-avatar--talking {
+  box-shadow: 0 0 18px rgba(129, 140, 248, 0.6);
+  animation: orb-talking-breathe 1.4s ease-in-out infinite;
+}
+
+/* Message content card (contained variant) */
+.voice-agent__message-content-wrap {
+  padding: 0.85rem 1.1rem;
+  border-radius: var(--radius-lg);
+  font-size: 0.9rem;
+  line-height: 1.45;
+  max-width: 100%;
+  border: 1px solid transparent;
+}
+
+.voice-agent__message-widget--user .voice-agent__message-content-wrap {
+  background: linear-gradient(135deg, var(--color-accent) 0%, #4f46e5 100%);
+  color: white;
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.voice-agent__message-widget--assistant .voice-agent__message-content-wrap {
+  background: var(--color-surface);
+  color: var(--color-text);
+  border-color: var(--color-border);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
 .voice-agent__message-content {
   white-space: pre-wrap;
   word-wrap: break-word;
+}
+
+/* Optional sender label for message widget */
+.voice-agent__message-sender {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 0.35rem;
+  opacity: 0.85;
+}
+
+.voice-agent__message-widget--user .voice-agent__message-sender {
+  text-align: right;
 }
 
 /* Footer */

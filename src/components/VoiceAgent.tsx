@@ -9,6 +9,13 @@ import './VoiceAgent.css'
  * Get from: https://elevenlabs.io/app/agents
  */
 const AGENT_ID = import.meta.env.VITE_ELEVENLABS_AGENT_ID ?? ''
+/** Backend API URL so we can notify when user starts/ends a call (dashboard refreshes on this). */
+const API_URL = (import.meta.env.VITE_API_URL ?? '').replace(/\/$/, '')
+
+function notifyAgentActivity() {
+  if (!API_URL) return
+  fetch(`${API_URL}/api/agent-activity`, { method: 'POST' }).catch(() => {})
+}
 
 interface ChatMessage {
   role: 'user' | 'assistant'
@@ -33,14 +40,17 @@ export function VoiceAgent({ onEndSession }: VoiceAgentProps) {
   const [liveInputVolume, setLiveInputVolume] = useState(0)
   const [liveOutputVolume, setLiveOutputVolume] = useState(0)
   const mediaStreamRef = useRef<MediaStream | null>(null)
+  const messagesEndRef = useRef<HTMLDivElement | null>(null)
 
   const conversation = useConversation({
     onConnect: () => {
       setMessages([])
+      notifyAgentActivity()
     },
     onDisconnect: () => {
       setMessages([])
       setAgentState('disconnected')
+      notifyAgentActivity()
     },
     onMessage: (message) => {
       if (message.message) {
@@ -102,6 +112,7 @@ export function VoiceAgent({ onEndSession }: VoiceAgentProps) {
       mediaStreamRef.current = null
     }
     setErrorMessage(null)
+    notifyAgentActivity()
   }, [conversation])
 
   const goBack = useCallback(() => {
@@ -121,6 +132,18 @@ export function VoiceAgent({ onEndSession }: VoiceAgentProps) {
 
   const isCallActive = agentState === 'connected'
   const isTransitioning = agentState === 'connecting' || agentState === 'disconnecting'
+
+  // Orb agent state: "talking" when agent audio is playing, "listening" when connected, else idle
+  const orbAgentState: 'listening' | 'talking' | null =
+    agentState === 'connected'
+      ? liveOutputVolume > 0.05
+        ? 'talking'
+        : 'listening'
+      : null
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [messages])
 
   const getInputVolume = useCallback(() => {
     const rawValue = conversation.getInputVolume?.() ?? 0
@@ -181,13 +204,14 @@ export function VoiceAgent({ onEndSession }: VoiceAgentProps) {
           </button>
           <div className="voice-agent__header-left">
             <div
-              className="voice-agent__orb"
+              className={`voice-agent__orb ${orbAgentState ? `voice-agent__orb--${orbAgentState}` : ''}`}
               style={
                 {
                   '--input-volume': getInputVolume(),
                   '--output-volume': getOutputVolume(),
                 } as React.CSSProperties
               }
+              aria-label={orbAgentState === 'talking' ? 'Agent speaking' : orbAgentState === 'listening' ? 'Listening' : undefined}
             />
             <div className="voice-agent__header-text">
               <p className="voice-agent__name">Devanshi</p>
@@ -213,7 +237,7 @@ export function VoiceAgent({ onEndSession }: VoiceAgentProps) {
           <div className="voice-agent__messages">
           {messages.length === 0 ? (
             <div className="voice-agent__empty">
-              <div className="voice-agent__empty-orb" />
+              <div className={`voice-agent__empty-orb ${orbAgentState ? `voice-agent__empty-orb--${orbAgentState}` : ''}`} />
               <p className="voice-agent__empty-title">
                 {isTransitioning ? 'Starting conversation...' : 'Start talking'}
               </p>
@@ -222,14 +246,30 @@ export function VoiceAgent({ onEndSession }: VoiceAgentProps) {
               </p>
             </div>
           ) : (
-            messages.map((msg, i) => (
-              <div
-                key={i}
-                className={`voice-agent__message voice-agent__message--${msg.role}`}
-              >
-                <span className="voice-agent__message-content">{msg.content}</span>
-              </div>
-            ))
+            <>
+              {messages.map((msg, i) => (
+                <div
+                  key={i}
+                  className={`voice-agent__message-widget voice-agent__message-widget--${msg.role}`}
+                  data-from={msg.role}
+                >
+                  {msg.role === 'assistant' && (
+                    <div
+                      className={`voice-agent__message-avatar voice-agent__message-avatar--orb ${i === messages.length - 1 && orbAgentState === 'talking' ? 'voice-agent__message-avatar--talking' : ''}`}
+                      aria-hidden
+                      title={i === messages.length - 1 && orbAgentState === 'talking' ? 'Devanshi is speaking' : 'Devanshi'}
+                    />
+                  )}
+                  <div className="voice-agent__message-content-wrap">
+                    <span className="voice-agent__message-sender">
+                      {msg.role === 'assistant' ? 'Devanshi' : 'You'}
+                    </span>
+                    <div className="voice-agent__message-content">{msg.content}</div>
+                  </div>
+                </div>
+              ))}
+              <div ref={messagesEndRef} />
+            </>
             )}
           </div>
         </div>
@@ -251,7 +291,10 @@ export function VoiceAgent({ onEndSession }: VoiceAgentProps) {
         ) : (
           <button
             className="voice-agent__end-btn"
-            onClick={endSession}
+            onClick={() => {
+              endSession()
+              onEndSession()
+            }}
             disabled={isTransitioning}
             type="button"
             title="End call and go back"

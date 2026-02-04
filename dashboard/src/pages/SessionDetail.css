@@ -75,6 +75,27 @@
   font-weight: 600;
 }
 
+.session-detail-summary {
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+}
+
+.session-detail-summary-title {
+  margin: 0 0 0.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.session-detail-summary-text {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: var(--color-text);
+}
+
 .transcript-list {
   display: flex;
   flex-direction: column;
