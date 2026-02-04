@@ -39,16 +39,22 @@ function authMiddleware(req, res, next) {
 }
 
 app.post('/auth/login', (req, res) => {
-  const { username, password } = req.body || {};
-  if (username !== DASHBOARD_USER || password !== DASHBOARD_PASSWORD) {
-    return res.status(401).json({ error: 'Invalid username or password' });
+  try {
+    const { username, password } = req.body || {};
+    const secret = JWT_SECRET && String(JWT_SECRET).trim() ? JWT_SECRET : 'dev-secret-change-in-production';
+    if (username !== DASHBOARD_USER || password !== DASHBOARD_PASSWORD) {
+      return res.status(401).json({ error: 'Invalid username or password' });
+    }
+    const token = jwt.sign(
+      { sub: username, role: 'admin' },
+      secret,
+      { expiresIn: '7d' }
+    );
+    return res.json({ token, user: { username } });
+  } catch (err) {
+    console.error('Login error:', err);
+    return res.status(500).json({ error: 'Login failed. Check server logs.' });
   }
-  const token = jwt.sign(
-    { sub: username, role: 'admin' },
-    JWT_SECRET,
-    { expiresIn: '7d' }
-  );
-  return res.json({ token, user: { username } });
 });
 
 app.get('/api/agent-summary', authMiddleware, async (req, res) => {
@@ -87,10 +93,7 @@ app.get('/api/conversations', authMiddleware, async (req, res) => {
     const params = { page_size: Math.min(Number(page_size) || 30, 100), summary_mode: 'include' };
     if (AGENT_ID) params.agent_id = AGENT_ID;
     if (cursor) params.cursor = cursor;
-    const { data } = await elevenLabs.get('/v1/convai/conversations', {
-      params,
-      paramsSerializer: { indexes: null },
-    });
+    const { data } = await elevenLabs.get('/v1/convai/conversations', { params });
     return res.json(data || { conversations: [], has_more: false, next_cursor: null });
   } catch (err) {
     const status = err.response?.status || 500;

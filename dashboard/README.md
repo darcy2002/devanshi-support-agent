@@ -17,13 +17,22 @@ Copy `.env.example` to `.env`:
 |----------|----------|-------------|
 | `VITE_APP_URL` | No | URL of the main support agent app (e.g. `http://localhost:5173`) for the "Back to app" link. Default `/`. |
 
-The dashboard uses Vite’s proxy: `/api` and `/auth` are proxied to the backend (default `http://localhost:3001`). Run the backend first.
+The dashboard uses Vite’s proxy: `/api` and `/auth` are proxied to the backend (default `http://localhost:3001`).
 
 ## Run
 
+From the **dashboard** folder, one command starts both the backend and the dashboard:
+
 ```bash
+cd dashboard
 npm install
 npm run dev
 ```
 
-Dashboard: `http://localhost:5174`. Log in with the same credentials as in `backend/.env` (`DASHBOARD_USER` / `DASHBOARD_PASSWORD`).
+This starts the backend (API at http://localhost:3001) and the dashboard (UI at http://localhost:5174) together. Open **http://localhost:5174** in your browser and log in with the credentials from `backend/.env` (`DASHBOARD_USER` / `DASHBOARD_PASSWORD`).
+
+To run only the dashboard (with the backend already running elsewhere), use:
+
+```bash
+npm run dev:only
+```
