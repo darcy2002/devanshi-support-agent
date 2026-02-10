@@ -96,6 +96,53 @@
   color: var(--color-text);
 }
 
+.session-detail-calendar {
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+}
+
+.session-detail-calendar .session-detail-muted {
+  margin-bottom: 0.75rem;
+}
+
+.session-detail-calendar-btn {
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: white;
+  background: var(--color-accent);
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+
+.session-detail-calendar-btn:hover:not(:disabled) {
+  opacity: 0.95;
+}
+
+.session-detail-calendar-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.session-detail-calendar-success,
+.session-detail-calendar-muted,
+.session-detail-calendar-error {
+  margin: 0.75rem 0 0;
+  font-size: 0.9rem;
+}
+
+.session-detail-calendar-success a {
+  color: var(--color-accent);
+}
+
+.session-detail-calendar-error {
+  color: var(--color-error);
+}
+
 .transcript-list {
   display: flex;
   flex-direction: column;

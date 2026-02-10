@@ -3,6 +3,9 @@ import express from 'express';
 import cors from 'cors';
 import jwt from 'jsonwebtoken';
 import axios from 'axios';
+import { createCalendarEvent, isCalendarConfigured } from './calendar.js';
+import { detectScheduleCallIntent, getFullText } from './intent.js';
+import { parseEventDateTime } from './parseDateTime.js';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -146,6 +149,73 @@ app.get('/api/conversations/:conversationId', authMiddleware, async (req, res) =
   } catch (err) {
     const status = err.response?.status || 500;
     const message = err.response?.data?.detail?.message || err.message || 'ElevenLabs request failed';
+    return res.status(status).json({ error: message });
+  }
+});
+
+/**
+ * Create a Google Calendar event when the conversation shows intent to schedule a call with Devanshi.
+ * Only runs when intent is detected (schedule/book + Devanshi/you context). Uses call transcript/summary.
+ * @see https://developers.google.com/workspace/calendar/api/guides/create-events
+ */
+app.post('/api/calendar/create-from-conversation', authMiddleware, async (req, res) => {
+  if (!isCalendarConfigured()) {
+    return res.status(503).json({ error: 'Google Calendar not configured. Set GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REFRESH_TOKEN.' });
+  }
+  if (!ELEVENLABS_API_KEY) {
+    return res.status(503).json({ error: 'ElevenLabs API not configured' });
+  }
+  const { conversationId } = req.body || {};
+  if (!conversationId) {
+    return res.status(400).json({ error: 'conversationId required in body' });
+  }
+  try {
+    const { data: conversation } = await elevenLabs.get(`/v1/convai/conversations/${encodeURIComponent(conversationId)}`);
+    const { wantsScheduleCall, confidence } = detectScheduleCallIntent(conversation || {});
+
+    if (!wantsScheduleCall || confidence !== 'high') {
+      return res.json({
+        created: false,
+        reason: 'no_schedule_intent',
+        message: 'Conversation did not show clear intent to schedule a call with Devanshi.',
+        confidence,
+      });
+    }
+
+    const fullText = getFullText(conversation || {});
+    const { start, end, timeZone } = parseEventDateTime(fullText);
+    const summary = process.env.GOOGLE_CALENDAR_EVENT_TITLE || 'Call with Devanshi';
+    const description = [
+      'Created from Support Agent conversation.',
+      conversationId ? `Conversation ID: ${conversationId}` : '',
+      (conversation?.transcript_summary || conversation?.call_summary_title || '').slice(0, 500),
+    ]
+      .filter(Boolean)
+      .join('\n\n');
+
+    const event = await createCalendarEvent({
+      summary,
+      description,
+      start,
+      end,
+      timeZone,
+    });
+
+    return res.json({
+      created: true,
+      event: {
+        id: event.id,
+        htmlLink: event.htmlLink,
+        summary: event.summary,
+        start: event.start,
+        end: event.end,
+      },
+      intent: 'schedule_call',
+    });
+  } catch (err) {
+    console.error('Calendar create-from-conversation error:', err);
+    const status = err.response?.status || err.code === 'ECONNREFUSED' ? 502 : 500;
+    const message = err.message || err.response?.data?.error?.message || 'Failed to create calendar event';
     return res.status(status).json({ error: message });
   }
 });

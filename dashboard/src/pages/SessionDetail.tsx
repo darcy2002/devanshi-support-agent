@@ -34,6 +34,11 @@ export function SessionDetail() {
   const [conversation, setConversation] = useState<ConversationDetail | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [calendarAction, setCalendarAction] = useState<{
+    status: 'idle' | 'loading' | 'created' | 'no_intent' | 'error'
+    message?: string
+    eventLink?: string
+  }>({ status: 'idle' })
 
   useEffect(() => {
     if (!conversationId) {
@@ -69,6 +74,36 @@ export function SessionDetail() {
     const m = Math.floor(secs / 60)
     const s = secs % 60
     return `${m}:${s.toString().padStart(2, '0')}`
+  }
+
+  const handleCreateCalendarEvent = () => {
+    if (!conversationId) return
+    setCalendarAction({ status: 'loading' })
+    const headers = getAuthHeaders()
+    fetch('/api/calendar/create-from-conversation', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...headers },
+      body: JSON.stringify({ conversationId }),
+    })
+      .then((r) => {
+        if (r.status === 401) {
+          logout()
+          navigate('/login', { replace: true })
+          return null
+        }
+        return r.json()
+      })
+      .then((data) => {
+        if (data == null) return
+        if (data.created && data.event?.htmlLink) {
+          setCalendarAction({ status: 'created', eventLink: data.event.htmlLink, message: data.event.summary })
+        } else if (data.reason === 'no_schedule_intent') {
+          setCalendarAction({ status: 'no_intent', message: data.message || 'No schedule intent detected.' })
+        } else {
+          setCalendarAction({ status: 'error', message: data.error || 'Failed to create event.' })
+        }
+      })
+      .catch(() => setCalendarAction({ status: 'error', message: 'Request failed.' }))
   }
 
   return (
@@ -112,6 +147,35 @@ export function SessionDetail() {
                 )}
               </section>
             )}
+
+            <section className="session-detail-calendar">
+              <h2 className="session-detail-section-title">Calendar</h2>
+              <p className="session-detail-muted">
+                If this call showed intent to schedule a call with Devanshi, create an event on your calendar.
+              </p>
+              <button
+                type="button"
+                className="session-detail-calendar-btn"
+                onClick={handleCreateCalendarEvent}
+                disabled={calendarAction.status === 'loading'}
+              >
+                {calendarAction.status === 'loading' ? 'Creating…' : 'Create calendar event'}
+              </button>
+              {calendarAction.status === 'created' && calendarAction.eventLink && (
+                <p className="session-detail-calendar-success">
+                  Event created.{' '}
+                  <a href={calendarAction.eventLink} target="_blank" rel="noopener noreferrer">
+                    Open in Google Calendar
+                  </a>
+                </p>
+              )}
+              {calendarAction.status === 'no_intent' && (
+                <p className="session-detail-calendar-muted">{calendarAction.message}</p>
+              )}
+              {calendarAction.status === 'error' && (
+                <p className="session-detail-calendar-error">{calendarAction.message}</p>
+              )}
+            </section>
 
             <section className="session-detail-transcript">
               <h2 className="session-detail-section-title">Transcript</h2>
